@@ -40,7 +40,8 @@ class ChatGPTTelegramBot:
             BotCommand(command='reset', description=localized_text('reset_description', bot_language)),
             BotCommand(command='image', description=localized_text('image_description', bot_language)),
             BotCommand(command='stats', description=localized_text('stats_description', bot_language)),
-            BotCommand(command='resend', description=localized_text('resend_description', bot_language))
+            BotCommand(command='resend', description=localized_text('resend_description', bot_language)),
+            BotCommand(command='payment',description=localized_text('payment_description', bot_language)),
         ]
         self.group_commands = [BotCommand(
             command='chat', description=localized_text('chat_description', bot_language)
@@ -138,6 +139,20 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
+    #here i start messing up with code#######################
+    async def payment(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
+        """
+        Shows the help menu.
+        """
+        bot_language = self.config['bot_language']
+
+        await update.message.reply_text(localized_text('payment_text',bot_language), disable_web_page_preview=True)
+
+    
+    #########################################################
+    
+    
+    
     async def resend(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
         Resend the last request
@@ -749,6 +764,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
+        application.add_handler(CommandHandler('payment', self.payment))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
