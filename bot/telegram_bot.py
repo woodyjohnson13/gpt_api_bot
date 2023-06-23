@@ -4,6 +4,8 @@ import asyncio
 import logging
 import os
 
+from dotenv import load_dotenv,dotenv_values,set_key
+
 #messing up
 
 
@@ -23,6 +25,8 @@ from utils import is_group_chat, get_thread_id, message_text, wrap_with_indicato
 from openai_helper import OpenAIHelper, localized_text
 from usage_tracker import UsageTracker
 
+
+load_dotenv()
 
 class ChatGPTTelegramBot:
     """
@@ -191,8 +195,53 @@ class ChatGPTTelegramBot:
         await update.message.reply_text("Thank you for your payment!")
         #Thats my mess with user id
         user_id = update.message.from_user.id
-         # do something with the user ID
+        
+        
+        ########################################################################
+        #This is all about changing the environtmental variable
+        # Retrieve the existing user IDs as a string from the environment variable
+        #user_ids_str = os.getenv("SAMPLE_VARIABLE", "")
+        #user_ids = user_ids_str.split(",") if user_ids_str else []
+        #print(user_ids)
+        # Append the new user ID to the list
+        #user_id = update.message.from_user.id
+        #user_ids.append(str(user_id))
+
+        # Convert the updated list back to a comma-separated string
+        #user_ids_str = ",".join(user_ids)
+        #print(user_ids_str)
+        
+        # Update the environment variable with the new value
+        #os.environ["SAMPLE_VARIABLE"] = user_ids_str
+        ###################################################################################
+        
+        
+        #This is another method of changing .env variable
+        # Load .env file into a dictionary
+        env_vars = dotenv_values(".env")
+
+        # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
+        sample_variable = env_vars.get("SAMPLE_VARIABLE")
+
+        # Update the value of SAMPLE_VARIABLE
+        new_value = sample_variable+(f",{user_id}")
+        set_key(".env", "SAMPLE_VARIABLE", new_value)
+
+        # Load the updated .env file into the dictionary
+        env_vars = dotenv_values(".env")
+
+        # Retrieve the updated value of SAMPLE_VARIABLE from the dictionary
+        sample_variable_updated = env_vars.get("SAMPLE_VARIABLE")
+        
+        print(sample_variable)  # Original value
+        print(sample_variable_updated)  # Updated value
+
+
+        
+        
+        # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment!{user_id}")
+
    
         
     
@@ -816,7 +865,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('payment', self.payment))
+        application.add_handler(CommandHandler('payment', self.successful_payment_callback))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
