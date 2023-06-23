@@ -82,6 +82,7 @@ def main():
     openai_helper = OpenAIHelper(config=openai_config)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
     telegram_bot.run()
+    
 
 
 if __name__ == '__main__':

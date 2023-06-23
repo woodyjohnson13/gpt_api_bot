@@ -4,13 +4,16 @@ import asyncio
 import logging
 import os
 
+#messing up
+
+
 from uuid import uuid4
-from telegram import BotCommandScopeAllGroupChats, Update, constants
+from telegram import BotCommandScopeAllGroupChats, Update, constants,LabeledPrice
 from telegram import InlineKeyboardMarkup, InlineKeyboardButton, InlineQueryResultArticle
 from telegram import InputTextMessageContent, BotCommand
 from telegram.error import RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, \
-    filters, InlineQueryHandler, CallbackQueryHandler, Application, ContextTypes, CallbackContext
+    filters, InlineQueryHandler, CallbackQueryHandler, Application, ContextTypes, CallbackContext,PreCheckoutQueryHandler
 
 from pydub import AudioSegment
 
@@ -139,17 +142,63 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
-    #here i start messing up with code#######################
-    async def payment(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
-        """
-        Shows the help menu.
-        """
-        bot_language = self.config['bot_language']
-
-        await update.message.reply_text(localized_text('payment_text',bot_language), disable_web_page_preview=True)
-
+    #here i start messing up with code########################################################################################################################################################################################################################################################################################################
+    #stole some more code and it works#
     
-    #########################################################
+    
+    async def payment(self,
+    update: Update, context: ContextTypes.DEFAULT_TYPE
+    ) -> None:
+            #Sends an invoice without shipping-payment.
+            chat_id = update.message.chat_id
+            title = "Payment Example"
+            description = "Payment Example using python-telegram-bot"
+            # select a payload just for you to recognize its the donation from your bot
+            payload = "Custom-Payload"
+            # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
+            currency = "RUB"
+            # price in dollars
+            price = 1000
+            # price * 100 so as to include 2 decimal points
+            prices = [LabeledPrice("Test", price * 100)]
+
+            await context.bot.send_invoice(
+            chat_id, title, description, payload, "381764678:TEST:60054", currency, prices)
+        #Sourse code comments
+        # optionally pass need_name=True, need_phone_number=True,
+        # need_email=True, need_shipping_address=True, is_flexible=True
+ 
+    #My comments, donth think will need it in the future
+    #await update.message.reply_text(localized_text('payment_text',bot_languagedisable_web_page_preview=True)
+    #await update.message.reply_text(f"Hello, User {user_id}!")
+    #m=PreCheckoutQueryHandler
+    
+    # after (optional) shipping, it's the pre-checkout
+    async def precheckout_callback(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Answers the PreQecheckoutQuery"""
+        query = update.pre_checkout_query
+        # check the payload, is this from your bot?
+        if query.invoice_payload != "Custom-Payload":
+            # answer False pre_checkout_query
+            await query.answer(ok=False, error_message="Something went wrong...")
+        else:
+            await query.answer(ok=True)  
+    
+    # finally, after contacting the payment provider...
+    async def successful_payment_callback(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+        """Confirms the successful payment."""
+        # do something after successfully receiving payment?
+        await update.message.reply_text("Thank you for your payment!")
+        #Thats my mess with user id
+        user_id = update.message.from_user.id
+         # do something with the user ID
+        await update.message.reply_text(f"Thank you for your payment!{user_id}")
+   
+        
+    
+
+    ########################################################################################################################################################################################################
+    ###################################################################################################
     
     
     
@@ -758,6 +807,9 @@ class ChatGPTTelegramBot:
             .concurrent_updates(True) \
             .build()
 
+        application.add_handler(
+        MessageHandler(filters.SUCCESSFUL_PAYMENT, self.successful_payment_callback))
+        application.add_handler(PreCheckoutQueryHandler(self.precheckout_callback))
         application.add_handler(CommandHandler('reset', self.reset))
         application.add_handler(CommandHandler('help', self.help))
         application.add_handler(CommandHandler('image', self.image))
