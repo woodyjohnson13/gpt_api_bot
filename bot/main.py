@@ -83,6 +83,8 @@ def main():
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
     telegram_bot.run()
     
+    
+    
 
 
 if __name__ == '__main__':

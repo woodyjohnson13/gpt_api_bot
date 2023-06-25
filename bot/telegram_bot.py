@@ -6,7 +6,6 @@ import os
 
 from dotenv import load_dotenv,dotenv_values,set_key
 
-#messing up
 
 
 from uuid import uuid4
@@ -28,6 +27,7 @@ from usage_tracker import UsageTracker
 
 load_dotenv()
 
+
 class ChatGPTTelegramBot:
     """
     Class representing a ChatGPT Telegram Bot.
@@ -39,6 +39,7 @@ class ChatGPTTelegramBot:
         :param config: A dictionary containing the bot configuration
         :param openai: OpenAIHelper object
         """
+        self.runing=True
         self.config = config
         self.openai = openai
         bot_language = self.config['bot_language']
@@ -221,26 +222,26 @@ class ChatGPTTelegramBot:
         env_vars = dotenv_values(".env")
 
         # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-        sample_variable = env_vars.get("SAMPLE_VARIABLE")
+        sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
 
         # Update the value of SAMPLE_VARIABLE
         new_value = sample_variable+(f",{user_id}")
-        set_key(".env", "SAMPLE_VARIABLE", new_value)
+        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
 
         # Load the updated .env file into the dictionary
         env_vars = dotenv_values(".env")
 
         # Retrieve the updated value of SAMPLE_VARIABLE from the dictionary
-        sample_variable_updated = env_vars.get("SAMPLE_VARIABLE")
-        
+        sample_variable_updated = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        #load_dotenv()
         print(sample_variable)  # Original value
         print(sample_variable_updated)  # Updated value
 
 
-        
-        
         # do something with the user ID
-        await update.message.reply_text(f"Thank you for your payment!{user_id}")
+        await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
+        
+        #self.relog()
 
    
         
@@ -865,7 +866,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('payment', self.successful_payment_callback))
+        application.add_handler(CommandHandler('payment', self.payment))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
@@ -880,5 +881,12 @@ class ChatGPTTelegramBot:
         application.add_handler(CallbackQueryHandler(self.handle_callback_inline_query))
 
         application.add_error_handler(error_handler)
-
+        
+        
         application.run_polling()
+        
+            
+        
+    #relog bot to renew .env
+    #def relog(self):
+       
