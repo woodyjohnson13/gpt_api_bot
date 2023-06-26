@@ -1,5 +1,6 @@
 import logging
 import os
+import signal
 
 from dotenv import load_dotenv
 
@@ -7,7 +8,11 @@ from openai_helper import OpenAIHelper, default_max_tokens
 from telegram_bot import ChatGPTTelegramBot
 
 
+
+
+
 def main():
+    
     # Read .env file
     load_dotenv()
 
@@ -77,12 +82,25 @@ def main():
         'transcription_price': float(os.environ.get('TRANSCRIPTION_PRICE', 0.006)),
         'bot_language': os.environ.get('BOT_LANGUAGE', 'en'),
     }
+    
+    def handle_reload_signal():
+        openai_helper = OpenAIHelper(config=openai_config)
+        telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
+        telegram_bot.run()
+    
 
+    
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
     telegram_bot.run()
+
     
+
+    
+
+    
+
     
     
 

@@ -3,7 +3,9 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-
+import sys
+import dotenv
+import signal
 from dotenv import load_dotenv,dotenv_values,set_key
 
 
@@ -25,6 +27,7 @@ from openai_helper import OpenAIHelper, localized_text
 from usage_tracker import UsageTracker
 
 
+
 load_dotenv()
 
 
@@ -32,7 +35,12 @@ class ChatGPTTelegramBot:
     """
     Class representing a ChatGPT Telegram Bot.
     """
+    async def restart(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text('See you soon!')
+        raise SystemExit()
 
+
+    
     def __init__(self, config: dict, openai: OpenAIHelper):
         """
         Initializes the bot with the given configuration and GPT bot object.
@@ -845,6 +853,13 @@ class ChatGPTTelegramBot:
         await application.bot.set_my_commands(self.group_commands, scope=BotCommandScopeAllGroupChats())
         await application.bot.set_my_commands(self.commands)
 
+    async def restart_bot(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("Restarting...")
+        args = sys.argv[:]
+        args.insert(0, sys.executable)
+        os.chdir(os.getcwd())
+        os.execv(sys.executable, args)
+
     def run(self):
         """
         Runs the bot indefinitely until the user presses Ctrl+C
@@ -865,8 +880,8 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('image', self.image))
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
-        application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('payment', self.payment))
+        application.add_handler(CommandHandler('resend', self.restart))
+        application.add_handler(CommandHandler('payment', self.successful_payment_callback))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
@@ -882,11 +897,12 @@ class ChatGPTTelegramBot:
 
         application.add_error_handler(error_handler)
         
-        
+       
         application.run_polling()
         
+    
+    
+   
             
         
-    #relog bot to renew .env
-    #def relog(self):
-       
+    
