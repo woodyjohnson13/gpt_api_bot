@@ -4,8 +4,6 @@ import asyncio
 import logging
 import os
 import sys
-import dotenv
-import signal
 from dotenv import load_dotenv,dotenv_values,set_key
 
 
@@ -47,7 +45,6 @@ class ChatGPTTelegramBot:
         :param config: A dictionary containing the bot configuration
         :param openai: OpenAIHelper object
         """
-        self.runing=True
         self.config = config
         self.openai = openai
         bot_language = self.config['bot_language']
@@ -57,7 +54,7 @@ class ChatGPTTelegramBot:
             BotCommand(command='image', description=localized_text('image_description', bot_language)),
             BotCommand(command='stats', description=localized_text('stats_description', bot_language)),
             BotCommand(command='resend', description=localized_text('resend_description', bot_language)),
-            BotCommand(command='premium',description=localized_text('payment_description', bot_language)),
+            BotCommand(command='premium',description=localized_text('premium_description', bot_language)),
         ]
         self.group_commands = [BotCommand(
             command='chat', description=localized_text('chat_description', bot_language)
@@ -157,7 +154,7 @@ class ChatGPTTelegramBot:
 
     
     
-    async def payment(self,
+    async def premium(self,
     update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
             user_id = update.message.from_user.id
@@ -182,7 +179,7 @@ class ChatGPTTelegramBot:
                 # price in dollars
                 price = 500
                 # price * 100 so as to include 2 decimal points
-                prices = [LabeledPrice("Test", price * 100)]
+                prices = [LabeledPrice("Premium", price * 100)]
 
                 await context.bot.send_invoice(
                 chat_id, title, description, payload, "381764678:TEST:60054", currency, prices)
@@ -222,25 +219,11 @@ class ChatGPTTelegramBot:
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
 
         # Load the updated .env file into the dictionary
-        env_vars = dotenv_values(".env")
-
-        # Retrieve the updated value of SAMPLE_VARIABLE from the dictionary
-        sample_variable_updated = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-        #load_dotenv()
-        print(sample_variable)  # Original value
-        print(sample_variable_updated)  # Updated value
-
-
+        env_vars = dotenv_values(".env")        
+        
         # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
         
-        #self.relog()
-
-   
-    ########################################################################################################################################################################################################
-    ###################################################################################################
-    
-    
     
     async def resend(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
         """
@@ -862,8 +845,8 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('image', self.image))
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
-        application.add_handler(CommandHandler('resend', self.restart))
-        application.add_handler(CommandHandler('premium', self.payment))
+        application.add_handler(CommandHandler('resend', self.resend))
+        application.add_handler(CommandHandler('premium', self.premium))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )

@@ -1,9 +1,8 @@
 from __future__ import annotations
 
 import asyncio
-import itertools
+#import itertools
 import logging
-import dotenv
 import telegram
 from telegram import Message, MessageEntity, Update, ChatMember, constants
 from telegram.ext import CallbackContext, ContextTypes
@@ -178,7 +177,9 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id    
     env_vars = dotenv_values(".env")
     sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-    if str(user_id) in sample_variable:
+    if sample_variable == '*':
+        return True
+    elif str(user_id) in sample_variable:
         return True
     else:
         return False
