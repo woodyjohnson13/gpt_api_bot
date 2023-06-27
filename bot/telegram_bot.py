@@ -48,7 +48,7 @@ class ChatGPTTelegramBot:
             BotCommand(command='image', description=localized_text('image_description', bot_language)),
             BotCommand(command='stats', description=localized_text('stats_description', bot_language)),
             BotCommand(command='resend', description=localized_text('resend_description', bot_language)),
-            BotCommand(command='payment',description=localized_text('payment_description', bot_language)),
+            BotCommand(command='premium',description=localized_text('payment_description', bot_language)),
         ]
         self.group_commands = [BotCommand(
             command='chat', description=localized_text('chat_description', bot_language)
@@ -146,37 +146,41 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
-    #here i start messing up with code########################################################################################################################################################################################################################################################################################################
-    #stole some more code and it works#
     
     
     async def payment(self,
     update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
-            #Sends an invoice without shipping-payment.
-            chat_id = update.message.chat_id
-            title = "Payment Example"
-            description = "Payment Example using python-telegram-bot"
-            # select a payload just for you to recognize its the donation from your bot
-            payload = "Custom-Payload"
-            # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
-            currency = "RUB"
-            # price in dollars
-            price = 1000
-            # price * 100 so as to include 2 decimal points
-            prices = [LabeledPrice("Test", price * 100)]
+            user_id = update.message.from_user.id
+            env_vars = dotenv_values(".env")
 
-            await context.bot.send_invoice(
-            chat_id, title, description, payload, "381764678:TEST:60054", currency, prices)
-        #Sourse code comments
-        # optionally pass need_name=True, need_phone_number=True,
-        # need_email=True, need_shipping_address=True, is_flexible=True
+            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
+            sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            
+            if str(user_id) in sample_variable:
+                await update.message.reply_text("Ваша подписка уже активна!")
+            else:
+                await update.message.reply_text("Premium подписка на месяц ! \n ✅Неограниченно количество сообщений \n ✅Нет паузы между запросами \n ✅Голосовые сообщения \n ✅Поддержание высокой скорости работы, даже в период повышенной нагрузки \n ✅ Неограниченное количество генераций изображений")
+                
+                #Sends an invoice without shipping-payment.
+                chat_id = update.message.chat_id
+                title = "Premium подписка."
+                description = "Получите месячный доступ к неограниченному функционалу бота!"
+                # select a payload just for you to recognize its the donation from your bot
+                payload = "Custom-Payload"
+                # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
+                currency = "RUB"
+                # price in dollars
+                price = 500
+                # price * 100 so as to include 2 decimal points
+                prices = [LabeledPrice("Test", price * 100)]
+
+                await context.bot.send_invoice(
+                chat_id, title, description, payload, "381764678:TEST:60054", currency, prices)
+            #Sourse code comments
+            # optionally pass need_name=True, need_phone_number=True,
+            # need_email=True, need_shipping_address=True, is_flexible=True
  
-    #My comments, donth think will need it in the future
-    #await update.message.reply_text(localized_text('payment_text',bot_languagedisable_web_page_preview=True)
-    #await update.message.reply_text(f"Hello, User {user_id}!")
-    #m=PreCheckoutQueryHandler
-    
     # after (optional) shipping, it's the pre-checkout
     async def precheckout_callback(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Answers the PreQecheckoutQuery"""
@@ -193,59 +197,32 @@ class ChatGPTTelegramBot:
         """Confirms the successful payment."""
         # do something after successfully receiving payment?
         await update.message.reply_text("Thank you for your payment!")
+        
         #Thats my mess with user id
         user_id = update.message.from_user.id
-        
-        
-        ########################################################################
-        #This is all about changing the environtmental variable
-        # Retrieve the existing user IDs as a string from the environment variable
-        #user_ids_str = os.getenv("SAMPLE_VARIABLE", "")
-        #user_ids = user_ids_str.split(",") if user_ids_str else []
-        #print(user_ids)
-        # Append the new user ID to the list
-        #user_id = update.message.from_user.id
-        #user_ids.append(str(user_id))
+        await update.message.reply_text(f"You id:{user_id} is added to white list!")
 
-        # Convert the updated list back to a comma-separated string
-        #user_ids_str = ",".join(user_ids)
-        #print(user_ids_str)
-        
-        # Update the environment variable with the new value
-        #os.environ["SAMPLE_VARIABLE"] = user_ids_str
-        ###################################################################################
-        
-        
-        #This is another method of changing .env variable
         # Load .env file into a dictionary
         env_vars = dotenv_values(".env")
 
         # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-        sample_variable = env_vars.get("SAMPLE_VARIABLE")
+        sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
 
         # Update the value of SAMPLE_VARIABLE
         new_value = sample_variable+(f",{user_id}")
-        set_key(".env", "SAMPLE_VARIABLE", new_value)
+        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
 
         # Load the updated .env file into the dictionary
         env_vars = dotenv_values(".env")
 
         # Retrieve the updated value of SAMPLE_VARIABLE from the dictionary
-        sample_variable_updated = env_vars.get("SAMPLE_VARIABLE")
+        sample_variable_updated = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        
+
         
         print(sample_variable)  # Original value
         print(sample_variable_updated)  # Updated value
-
-
-        
-        
-        # do something with the user ID
-        await update.message.reply_text(f"Thank you for your payment!{user_id}")
-
    
-        
-    
-
     ########################################################################################################################################################################################################
     ###################################################################################################
     
@@ -865,7 +842,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('payment', self.successful_payment_callback))
+        application.add_handler(CommandHandler('premium', self.payment))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
