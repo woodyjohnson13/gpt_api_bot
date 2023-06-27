@@ -3,12 +3,13 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
-
+import dotenv
 import telegram
 from telegram import Message, MessageEntity, Update, ChatMember, constants
 from telegram.ext import CallbackContext, ContextTypes
 
 from usage_tracker import UsageTracker
+from dotenv import load_dotenv,dotenv_values,set_key
 
 
 def message_text(message: Message) -> str:
@@ -149,29 +150,41 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     """
     Checks if the user is allowed to use the bot.
     """
-    if config['allowed_user_ids'] == '*':
-        return True
+    # if config['allowed_user_ids'] == '*':
+    #     return True
 
-    user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id
-    if is_admin(config, user_id):
+    # user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id
+    # if is_admin(config, user_id):
+    #     return True
+    # name = update.inline_query.from_user.name if is_inline else update.message.from_user.name
+    # allowed_user_ids = config['allowed_user_ids'].split(',')
+    # # Check if user is allowed
+    # if str(user_id) in allowed_user_ids:
+    #     return True
+    # # Check if it's a group a chat with at least one authorized member
+    # if not is_inline and is_group_chat(update):
+    #     admin_user_ids = config['admin_user_ids'].split(',')
+    #     for user in itertools.chain(allowed_user_ids, admin_user_ids):
+    #         if not user.strip():
+    #             continue
+    #         if await is_user_in_group(update, context, user):
+    #             logging.info(f'{user} is a member. Allowing group chat message...')
+    #             return True
+    #     logging.info(f'Group chat messages from user {name} '
+    #                  f'(id: {user_id}) are not allowed')
+    # return False
+    
+    load_dotenv()
+    user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id    
+    env_vars = dotenv_values(".env")
+    sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+    if str(user_id) in sample_variable:
         return True
-    name = update.inline_query.from_user.name if is_inline else update.message.from_user.name
-    allowed_user_ids = config['allowed_user_ids'].split(',')
-    # Check if user is allowed
-    if str(user_id) in allowed_user_ids:
-        return True
-    # Check if it's a group a chat with at least one authorized member
-    if not is_inline and is_group_chat(update):
-        admin_user_ids = config['admin_user_ids'].split(',')
-        for user in itertools.chain(allowed_user_ids, admin_user_ids):
-            if not user.strip():
-                continue
-            if await is_user_in_group(update, context, user):
-                logging.info(f'{user} is a member. Allowing group chat message...')
-                return True
-        logging.info(f'Group chat messages from user {name} '
-                     f'(id: {user_id}) are not allowed')
-    return False
+    else:
+        return False
+
+
+    
 
 def is_admin(config, user_id: int, log_no_admin=False) -> bool:
     """

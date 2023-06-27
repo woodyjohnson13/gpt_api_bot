@@ -3,10 +3,11 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-
+import sys
+import dotenv
+import signal
 from dotenv import load_dotenv,dotenv_values,set_key
 
-#messing up
 
 
 from uuid import uuid4
@@ -26,19 +27,27 @@ from openai_helper import OpenAIHelper, localized_text
 from usage_tracker import UsageTracker
 
 
+
 load_dotenv()
+
 
 class ChatGPTTelegramBot:
     """
     Class representing a ChatGPT Telegram Bot.
     """
+    async def restart(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text('See you soon!')
+        raise SystemExit()
 
+
+    
     def __init__(self, config: dict, openai: OpenAIHelper):
         """
         Initializes the bot with the given configuration and GPT bot object.
         :param config: A dictionary containing the bot configuration
         :param openai: OpenAIHelper object
         """
+        self.runing=True
         self.config = config
         self.openai = openai
         bot_language = self.config['bot_language']
@@ -217,11 +226,16 @@ class ChatGPTTelegramBot:
 
         # Retrieve the updated value of SAMPLE_VARIABLE from the dictionary
         sample_variable_updated = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-        
-
-        
+        #load_dotenv()
         print(sample_variable)  # Original value
         print(sample_variable_updated)  # Updated value
+
+
+        # do something with the user ID
+        await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
+        
+        #self.relog()
+
    
     ########################################################################################################################################################################################################
     ###################################################################################################
@@ -821,6 +835,13 @@ class ChatGPTTelegramBot:
         await application.bot.set_my_commands(self.group_commands, scope=BotCommandScopeAllGroupChats())
         await application.bot.set_my_commands(self.commands)
 
+    async def restart_bot(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
+        await update.message.reply_text("Restarting...")
+        args = sys.argv[:]
+        args.insert(0, sys.executable)
+        os.chdir(os.getcwd())
+        os.execv(sys.executable, args)
+
     def run(self):
         """
         Runs the bot indefinitely until the user presses Ctrl+C
@@ -841,7 +862,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('image', self.image))
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
-        application.add_handler(CommandHandler('resend', self.resend))
+        application.add_handler(CommandHandler('resend', self.restart))
         application.add_handler(CommandHandler('premium', self.payment))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
@@ -857,5 +878,13 @@ class ChatGPTTelegramBot:
         application.add_handler(CallbackQueryHandler(self.handle_callback_inline_query))
 
         application.add_error_handler(error_handler)
-
+        
+       
         application.run_polling()
+        
+    
+    
+   
+            
+        
+    
