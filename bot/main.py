@@ -1,11 +1,40 @@
 import logging
 import os
 
-from dotenv import load_dotenv
-
+import threading
 from openai_helper import OpenAIHelper, default_max_tokens
 from telegram_bot import ChatGPTTelegramBot
+from apscheduler.schedulers.blocking import BlockingScheduler
+from dotenv import dotenv_values,set_key,load_dotenv
+import json
+from datetime import datetime, timedelta
 
+def check_and_remove():
+            print('checking.....')
+            env_vars = dotenv_values(".env")
+            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
+            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            #creating json with allowed users_id
+            my_dict=json.loads(is_allowed)
+            
+            keys_to_remove = []
+
+            for key,value in my_dict.items():
+                timestamp=datetime.fromisoformat(value)
+                # Calculate the difference between the current date and the timestamp
+                difference = datetime.now() - timestamp
+                
+                # Check if a month has passed (30 days or more)
+                if difference >= timedelta(days=-3):
+                    keys_to_remove.append(key)
+                    # Delete the key-value pair from the dictionary
+                    
+                    
+            for key in keys_to_remove:
+                del my_dict[key]
+                new_value=json.dumps(my_dict)
+                set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
+           
 
 def main():
     # Read .env file
@@ -77,11 +106,27 @@ def main():
         'transcription_price': float(os.environ.get('TRANSCRIPTION_PRICE', 0.006)),
         'bot_language': os.environ.get('BOT_LANGUAGE', 'en'),
     }
+    
+    def hi():
+        print("Im sheduler")
 
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
+    # Create a scheduler
+    scheduler = BlockingScheduler()
+
+    # Schedule the check to run every morning at 8 AM
+    scheduler.add_job(check_and_remove,'cron', hour=13,minute=45)
+
+    scheduler_thread = threading.Thread(target=scheduler.start())
+    scheduler_thread.start()
+
+
     telegram_bot.run()
+    # Start the scheduler
+    scheduler_thread.join()
+
     
 
 

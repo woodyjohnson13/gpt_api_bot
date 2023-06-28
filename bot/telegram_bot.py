@@ -9,7 +9,6 @@ from dotenv import load_dotenv,dotenv_values,set_key
 #for subscription control
 from datetime import datetime,timedelta
 import json
-from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 from uuid import uuid4
@@ -156,8 +155,7 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
-    async def check_and_remove(self,
-    update: Update, context: ContextTypes.DEFAULT_TYPE):
+    async def check_and_remove(self):
             env_vars = dotenv_values(".env")
             # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
             is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
@@ -170,7 +168,7 @@ class ChatGPTTelegramBot:
                 difference = datetime.now() - timestamp
                 
                 # Check if a month has passed (30 days or more)
-                if difference >= timedelta(days=30):
+                if difference >= timedelta(days=1):
                     # Delete the key-value pair from the dictionary
                     del my_dict[key]
            
@@ -228,7 +226,7 @@ class ChatGPTTelegramBot:
         """Confirms the successful payment."""
         # do something after successfully receiving payment?
         await update.message.reply_text("Thank you for your payment!")
-        
+                
         #retireve the current timestamp and user id
         timestamp=datetime.now().isoformat()
         user_id = update.message.from_user.id
@@ -245,32 +243,6 @@ class ChatGPTTelegramBot:
         # Update the value of ALLOWED_TELEGRAM_USER_IDS
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", serialized_dict)
 
-        # # Load the updated .env file into the dictionary
-        # printable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-        # dict=json.loads(printable)
-        # print(printable)
-        
-        # if str(user_id)in my_dict:
-        #     print("already user")
-        #     del my_dict[user_id]
-        #     new_ser=json.dumps(my_dict  )
-        #     set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_ser)
-        #     print("removed")
-        #     # for key, value in my_dict.items():
-                    
-        #     #     # Convert the string timestamp to a datetime object
-        #     #     timestamp = datetime.fromisoformat(value)
-                
-        #     #     # Calculate the difference between the current date and the timestamp
-        #     #     difference = datetime.now() - timestamp
-                
-        #     #     # Check if a month has passed (30 days or more)
-        #     #     if difference >= timedelta(days=30):
-        #     #         # Delete the key-value pair from the dictionary
-        #     #         del my_dict[key]
-
-        # else:
-        #     print(f"User {user_id} is added to white list!")
    
         # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
