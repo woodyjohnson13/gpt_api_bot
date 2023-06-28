@@ -6,6 +6,10 @@ import os
 import sys
 from dotenv import load_dotenv,dotenv_values,set_key
 
+#for subscription control
+from datetime import datetime,timedelta
+import json
+from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 from uuid import uuid4
@@ -152,6 +156,25 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
+    async def check_and_remove(self,
+    update: Update, context: ContextTypes.DEFAULT_TYPE):
+            env_vars = dotenv_values(".env")
+            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
+            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            #creating json with allowed users_id
+            my_dict=json.loads(is_allowed)
+            
+            for key,value in my_dict.items():
+                timestamp=datetime.fromisoformat(value)
+                # Calculate the difference between the current date and the timestamp
+                difference = datetime.now() - timestamp
+                
+                # Check if a month has passed (30 days or more)
+                if difference >= timedelta(days=30):
+                    # Delete the key-value pair from the dictionary
+                    del my_dict[key]
+           
+                
     
     
     async def premium(self,
@@ -161,9 +184,11 @@ class ChatGPTTelegramBot:
             env_vars = dotenv_values(".env")
 
             # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-            sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            #creating json with allowed users_id
+            my_dict=json.loads(is_allowed)
             
-            if str(user_id) in sample_variable:
+            if str(user_id) in my_dict:
                 await update.message.reply_text("Ваша подписка уже активна!")
             else:
                 await update.message.reply_text("Premium подписка на месяц ! \n ✅Неограниченно количество сообщений \n ✅Нет паузы между запросами \n ✅Голосовые сообщения \n ✅Поддержание высокой скорости работы, даже в период повышенной нагрузки \n ✅ Неограниченное количество генераций изображений")
@@ -204,23 +229,49 @@ class ChatGPTTelegramBot:
         # do something after successfully receiving payment?
         await update.message.reply_text("Thank you for your payment!")
         
-        #Thats my mess with user id
+        #retireve the current timestamp and user id
+        timestamp=datetime.now().isoformat()
         user_id = update.message.from_user.id
-        await update.message.reply_text(f"You id:{user_id} is added to white list!")
-
         # Load .env file into a dictionary
         env_vars = dotenv_values(".env")
+        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
+        allowed_users_ids = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        #creating json with allowed users_id
+        my_dict=json.loads(allowed_users_ids)
+        #adding new data to json
+        my_dict[user_id]=timestamp  
+        #creating string from json, aka serializing
+        serialized_dict = json.dumps(my_dict)
+        # Update the value of ALLOWED_TELEGRAM_USER_IDS
+        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", serialized_dict)
 
-        # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-        sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-
-        # Update the value of SAMPLE_VARIABLE
-        new_value = sample_variable+(f",{user_id}")
-        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
-
-        # Load the updated .env file into the dictionary
-        env_vars = dotenv_values(".env")        
+        # # Load the updated .env file into the dictionary
+        # printable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        # dict=json.loads(printable)
+        # print(printable)
         
+        # if str(user_id)in my_dict:
+        #     print("already user")
+        #     del my_dict[user_id]
+        #     new_ser=json.dumps(my_dict  )
+        #     set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_ser)
+        #     print("removed")
+        #     # for key, value in my_dict.items():
+                    
+        #     #     # Convert the string timestamp to a datetime object
+        #     #     timestamp = datetime.fromisoformat(value)
+                
+        #     #     # Calculate the difference between the current date and the timestamp
+        #     #     difference = datetime.now() - timestamp
+                
+        #     #     # Check if a month has passed (30 days or more)
+        #     #     if difference >= timedelta(days=30):
+        #     #         # Delete the key-value pair from the dictionary
+        #     #         del my_dict[key]
+
+        # else:
+        #     print(f"User {user_id} is added to white list!")
+   
         # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
         
@@ -818,12 +869,7 @@ class ChatGPTTelegramBot:
         await application.bot.set_my_commands(self.group_commands, scope=BotCommandScopeAllGroupChats())
         await application.bot.set_my_commands(self.commands)
 
-    async def restart_bot(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text("Restarting...")
-        args = sys.argv[:]
-        args.insert(0, sys.executable)
-        os.chdir(os.getcwd())
-        os.execv(sys.executable, args)
+    
 
     def run(self):
         """
@@ -846,7 +892,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('premium', self.premium))
+        application.add_handler(CommandHandler('premium', self.check_and_remove))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
