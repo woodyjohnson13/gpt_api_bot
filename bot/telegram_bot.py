@@ -152,11 +152,6 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
-    
-           
-                
-    
-    
     async def premium(self,
     update: Update, context: ContextTypes.DEFAULT_TYPE
     ) -> None:
@@ -225,6 +220,8 @@ class ChatGPTTelegramBot:
         # Update the value of ALLOWED_TELEGRAM_USER_IDS
         set_key(".env", "MY_ALLOWED_LIST", serialized_dict)
         print(user_id)
+        
+        #workin with souece allowe users variable
         allowed_list=env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
         allowed_list=allowed_list+(f"{str(user_id)},")
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", allowed_list)
@@ -828,8 +825,6 @@ class ChatGPTTelegramBot:
         """
         await application.bot.set_my_commands(self.group_commands, scope=BotCommandScopeAllGroupChats())
         await application.bot.set_my_commands(self.commands)
-
-    
 
     def run(self):
         """
