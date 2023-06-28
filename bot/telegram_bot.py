@@ -18,6 +18,9 @@ from telegram import InputTextMessageContent, BotCommand
 from telegram.error import RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, \
     filters, InlineQueryHandler, CallbackQueryHandler, Application, ContextTypes, CallbackContext,PreCheckoutQueryHandler
+    
+from apscheduler.schedulers.blocking import BlockingScheduler
+
 
 from pydub import AudioSegment
 
@@ -40,6 +43,22 @@ class ChatGPTTelegramBot:
         await update.message.reply_text('See you soon!')
         raise SystemExit()
 
+    async def check_and_remove(self,context: ContextTypes.DEFAULT_TYPE):
+            env_vars = dotenv_values(".env")
+            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
+            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            #creating json with allowed users_id
+            my_dict=json.loads(is_allowed)
+            
+            for key,value in my_dict.items():
+                timestamp=datetime.fromisoformat(value)
+                # Calculate the difference between the current date and the timestamp
+                difference = datetime.now() - timestamp
+                
+                # Check if a month has passed (30 days or more)
+                if difference >= timedelta(days=1):
+                    # Delete the key-value pair from the dictionary
+                    del my_dict[key]
 
     
     def __init__(self, config: dict, openai: OpenAIHelper):
@@ -67,6 +86,13 @@ class ChatGPTTelegramBot:
         self.usage = {}
         self.last_message = {}
         self.inline_queries_cache = {}
+        
+            # # Create a scheduler
+        # scheduler = BlockingScheduler()
+
+        # #Schedule the check to run every morning at 8 AM
+        # scheduler.add_job(self.check_and_remove,'cron', hour=13,minute=50)
+        # scheduler.start()
 
     async def help(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -155,22 +181,7 @@ class ChatGPTTelegramBot:
         usage_text = text_current_conversation + text_today + text_month + text_budget
         await update.message.reply_text(usage_text, parse_mode=constants.ParseMode.MARKDOWN)
 
-    async def check_and_remove(self):
-            env_vars = dotenv_values(".env")
-            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-            #creating json with allowed users_id
-            my_dict=json.loads(is_allowed)
-            
-            for key,value in my_dict.items():
-                timestamp=datetime.fromisoformat(value)
-                # Calculate the difference between the current date and the timestamp
-                difference = datetime.now() - timestamp
-                
-                # Check if a month has passed (30 days or more)
-                if difference >= timedelta(days=1):
-                    # Delete the key-value pair from the dictionary
-                    del my_dict[key]
+    
            
                 
     
@@ -864,7 +875,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('premium', self.check_and_remove))
+        application.add_handler(CommandHandler('premium', self.successful_payment_callback))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )

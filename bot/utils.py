@@ -6,10 +6,10 @@ import logging
 import telegram
 from telegram import Message, MessageEntity, Update, ChatMember, constants
 from telegram.ext import CallbackContext, ContextTypes
-
+import json
 from usage_tracker import UsageTracker
 from dotenv import load_dotenv,dotenv_values,set_key
-
+from datetime import datetime,timedelta
 
 def message_text(message: Message) -> str:
     """
@@ -176,10 +176,20 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     load_dotenv()
     user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id    
     env_vars = dotenv_values(".env")
-    sample_variable = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-    if sample_variable == '*':
-        return True
-    elif str(user_id) in sample_variable:
+    is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+
+    my_dict=json.loads(is_allowed)
+    
+    if str(user_id) in my_dict:
+        timestamp=datetime.fromisoformat(my_dict[str(user_id)])
+        difference = datetime.now() - timestamp
+        if difference >= timedelta(days=1):
+            # Delete the key-value pair from the dictionary
+            del my_dict[str(user_id)]
+            new_value=json.dumps(my_dict)
+            set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
+            print("Sub no")
+            return False
         return True
     else:
         return False

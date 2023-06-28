@@ -1,15 +1,18 @@
 import logging
 import os
 
-import threading
+
 from openai_helper import OpenAIHelper, default_max_tokens
 from telegram_bot import ChatGPTTelegramBot
-from apscheduler.schedulers.blocking import BlockingScheduler
+#from apscheduler.schedulers.blocking import BlockingScheduler
 from dotenv import dotenv_values,set_key,load_dotenv
 import json
 from datetime import datetime, timedelta
 
-def check_and_remove():
+
+
+
+async def check_and_remove():
             print('checking.....')
             env_vars = dotenv_values(".env")
             # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
@@ -34,7 +37,8 @@ def check_and_remove():
                 del my_dict[key]
                 new_value=json.dumps(my_dict)
                 set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
-           
+
+
 
 def main():
     # Read .env file
@@ -107,25 +111,25 @@ def main():
         'bot_language': os.environ.get('BOT_LANGUAGE', 'en'),
     }
     
-    def hi():
-        print("Im sheduler")
 
     # Setup and run ChatGPT and Telegram bot
     openai_helper = OpenAIHelper(config=openai_config)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)
-    # Create a scheduler
-    scheduler = BlockingScheduler()
 
-    # Schedule the check to run every morning at 8 AM
-    scheduler.add_job(check_and_remove,'cron', hour=13,minute=45)
+    # # Create a scheduler
+    # scheduler = BlockingScheduler()
 
-    scheduler_thread = threading.Thread(target=scheduler.start())
-    scheduler_thread.start()
+    # # Schedule the check to run every morning at 8 AM
+    # scheduler.add_job(check_and_remove,'cron', hour=13,minute=50)
 
-
+    # scheduler_thread = threading.Thread(target=scheduler.start())
+    # scheduler_thread.start()
+    
     telegram_bot.run()
-    # Start the scheduler
-    scheduler_thread.join()
+
+    # # Start the scheduler
+    # scheduler_thread.join()
+
 
     
 
