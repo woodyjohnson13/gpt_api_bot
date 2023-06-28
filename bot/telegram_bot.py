@@ -3,7 +3,6 @@ from __future__ import annotations
 import asyncio
 import logging
 import os
-import sys
 from dotenv import load_dotenv,dotenv_values,set_key
 
 #for subscription control
@@ -19,7 +18,6 @@ from telegram.error import RetryAfter, TimedOut
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, \
     filters, InlineQueryHandler, CallbackQueryHandler, Application, ContextTypes, CallbackContext,PreCheckoutQueryHandler
     
-from apscheduler.schedulers.blocking import BlockingScheduler
 
 
 from pydub import AudioSegment
@@ -39,27 +37,6 @@ class ChatGPTTelegramBot:
     """
     Class representing a ChatGPT Telegram Bot.
     """
-    async def restart(self,update: Update, context: ContextTypes.DEFAULT_TYPE):
-        await update.message.reply_text('See you soon!')
-        raise SystemExit()
-
-    async def check_and_remove(self,context: ContextTypes.DEFAULT_TYPE):
-            env_vars = dotenv_values(".env")
-            # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
-            #creating json with allowed users_id
-            my_dict=json.loads(is_allowed)
-            
-            for key,value in my_dict.items():
-                timestamp=datetime.fromisoformat(value)
-                # Calculate the difference between the current date and the timestamp
-                difference = datetime.now() - timestamp
-                
-                # Check if a month has passed (30 days or more)
-                if difference >= timedelta(days=1):
-                    # Delete the key-value pair from the dictionary
-                    del my_dict[key]
-
     
     def __init__(self, config: dict, openai: OpenAIHelper):
         """
@@ -87,12 +64,6 @@ class ChatGPTTelegramBot:
         self.last_message = {}
         self.inline_queries_cache = {}
         
-            # # Create a scheduler
-        # scheduler = BlockingScheduler()
-
-        # #Schedule the check to run every morning at 8 AM
-        # scheduler.add_job(self.check_and_remove,'cron', hour=13,minute=50)
-        # scheduler.start()
 
     async def help(self, update: Update, _: ContextTypes.DEFAULT_TYPE) -> None:
         """
@@ -193,7 +164,7 @@ class ChatGPTTelegramBot:
             env_vars = dotenv_values(".env")
 
             # Retrieve the current value of SAMPLE_VARIABLE from the dictionary
-            is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+            is_allowed = env_vars.get("MY_ALLOWED_LIST")
             #creating json with allowed users_id
             my_dict=json.loads(is_allowed)
             
@@ -244,15 +215,15 @@ class ChatGPTTelegramBot:
         # Load .env file into a dictionary
         env_vars = dotenv_values(".env")
         # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
-        allowed_users_ids = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        my_allowed_users_ids = env_vars.get("MY_ALLOWED_LIST")
         #creating json with allowed users_id
-        my_dict=json.loads(allowed_users_ids)
+        my_dict=json.loads(my_allowed_users_ids)
         #adding new data to json
         my_dict[user_id]=timestamp  
         #creating string from json, aka serializing
         serialized_dict = json.dumps(my_dict)
         # Update the value of ALLOWED_TELEGRAM_USER_IDS
-        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", serialized_dict)
+        set_key(".env", "MY_ALLOWED_LIST", serialized_dict)
 
    
         # do something with the user ID

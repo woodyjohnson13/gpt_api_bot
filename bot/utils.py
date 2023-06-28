@@ -176,7 +176,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     load_dotenv()
     user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id    
     env_vars = dotenv_values(".env")
-    is_allowed = env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+    is_allowed = env_vars.get("MY_ALLOWED_LIST")
 
     my_dict=json.loads(is_allowed)
     
@@ -187,7 +187,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
             # Delete the key-value pair from the dictionary
             del my_dict[str(user_id)]
             new_value=json.dumps(my_dict)
-            set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", new_value)
+            set_key(".env", "MY_ALLOWED_LIST", new_value)
             print("Sub no")
             return False
         return True
