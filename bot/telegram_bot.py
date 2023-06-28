@@ -224,6 +224,12 @@ class ChatGPTTelegramBot:
         serialized_dict = json.dumps(my_dict)
         # Update the value of ALLOWED_TELEGRAM_USER_IDS
         set_key(".env", "MY_ALLOWED_LIST", serialized_dict)
+        print(user_id)
+        allowed_list=env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        allowed_list=allowed_list+(f"{str(user_id)},")
+        set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", allowed_list)
+
+        
 
    
         # do something with the user ID

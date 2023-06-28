@@ -183,7 +183,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     if str(user_id) in my_dict:
         timestamp=datetime.fromisoformat(my_dict[str(user_id)])
         difference = datetime.now() - timestamp
-        if difference >= timedelta(days=1):
+        if difference >= timedelta(days=30):
             # Delete the key-value pair from the dictionary
             del my_dict[str(user_id)]
             new_value=json.dumps(my_dict)
