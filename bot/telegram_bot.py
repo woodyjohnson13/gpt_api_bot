@@ -226,8 +226,10 @@ class ChatGPTTelegramBot:
         allowed_list=allowed_list+(f"{str(user_id)},")
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", allowed_list)
 
-        
-
+        #workin with user budget
+        budgets=env_vars.get("USER_BUDGETS")
+        budget=budget+("4,")
+        set_key(".env", "USER_BUDGETS", budget)
    
         # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment! User:{user_id}")

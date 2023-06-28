@@ -11,6 +11,9 @@ from usage_tracker import UsageTracker
 from dotenv import load_dotenv,dotenv_values,set_key
 from datetime import datetime,timedelta
 
+load_dotenv()
+
+
 def message_text(message: Message) -> str:
     """
     Returns the text of a message, excluding any bot commands.
@@ -329,3 +332,10 @@ def get_reply_to_message_id(config, update: Update):
     if config['enable_quoting'] or is_group_chat(update):
         return update.message.message_id
     return None
+
+def load_files():
+     # Load .env file into a dictionary
+        env_vars = dotenv_values(".env")
+        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
+        budgets = env_vars.get("USER_BUDGETS")
+        return budgets
