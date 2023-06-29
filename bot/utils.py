@@ -11,6 +11,15 @@ from usage_tracker import UsageTracker
 from dotenv import load_dotenv,dotenv_values,set_key
 from datetime import datetime,timedelta
 
+
+def load_files():
+     # Load .env file into a dictionary
+        env_vars = dotenv_values(".env")
+        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
+        budgets = env_vars.get("USER_BUDGETS")
+        return budgets
+    
+
 def message_text(message: Message) -> str:
     """
     Returns the text of a message, excluding any bot commands.
@@ -225,10 +234,10 @@ def get_user_budget(config, user_id) -> float | None:
     """
 
     # no budget restrictions for admins and '*'-budget lists
-    if is_admin(config, user_id) or config['user_budgets'] == '*':
+    if is_admin(config, user_id) or load_files == '*':
         return float('inf')
 
-    user_budgets = config['user_budgets'].split(',')
+    user_budgets = load_files()
     if config['allowed_user_ids'] == '*':
         # same budget for all users, use value in first position of budget list
         if len(user_budgets) > 1:
@@ -330,9 +339,3 @@ def get_reply_to_message_id(config, update: Update):
         return update.message.message_id
     return None
 
-def load_files():
-     # Load .env file into a dictionary
-        env_vars = dotenv_values(".env")
-        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
-        budgets = env_vars.get("USER_BUDGETS")
-        return budgets
