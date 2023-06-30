@@ -197,7 +197,6 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
             del my_dict[str(user_id)]
             new_value=json.dumps(my_dict)
             set_key(".env", "MY_ALLOWED_LIST", new_value)
-            print("Sub no")
             return False
         return True
     else:

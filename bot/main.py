@@ -8,8 +8,6 @@ from dotenv import load_dotenv
 
 
 
-
-
 def main():
     # Read .env file
     load_dotenv()
@@ -86,6 +84,7 @@ def main():
     openai_helper = OpenAIHelper(config=openai_config)
     telegram_bot = ChatGPTTelegramBot(config=telegram_config, openai=openai_helper)    
     telegram_bot.run()
+    mybot=OpenAIHelper(config=openai_config)
 
 
     
