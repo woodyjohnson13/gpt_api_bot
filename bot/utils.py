@@ -250,6 +250,8 @@ def get_user_budget(config, user_id) -> float | None:
         if len(user_budgets) <= user_index:
             logging.warning(f'No budget set for user id: {user_id}. Budget list shorter than user list.')
             return 0.0
+        ####
+        print(float(user_budgets[user_index]))
         return float(user_budgets[user_index])
     return None
 
