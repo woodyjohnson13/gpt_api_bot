@@ -18,6 +18,12 @@ def load_files():
         # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
         budgets = env_vars.get("USER_BUDGETS")
         return budgets
+
+def load_users():
+        env_vars = dotenv_values(".env")
+        allowed_list=env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        return allowed_list        
+
     
 
 def message_text(message: Message) -> str:
@@ -244,7 +250,8 @@ def get_user_budget(config, user_id) -> float | None:
                             'only the first value is used as budget for everyone.')
         return float(user_budgets[0])
 
-    allowed_user_ids = config['allowed_user_ids'].split(',')
+    to_split=load_users()
+    allowed_user_ids = to_split.split(',')
     if str(user_id) in allowed_user_ids:
         user_index = allowed_user_ids.index(str(user_id))
         if len(user_budgets) <= user_index:
