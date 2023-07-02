@@ -11,8 +11,20 @@ from usage_tracker import UsageTracker
 from dotenv import load_dotenv,dotenv_values,set_key
 from datetime import datetime,timedelta
 
-load_dotenv()
 
+def load_files():
+     # Load .env file into a dictionary
+        env_vars = dotenv_values(".env")
+        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
+        budgets = env_vars.get("USER_BUDGETS")
+        return budgets
+
+def load_users():
+        env_vars = dotenv_values(".env")
+        allowed_list=env_vars.get("ALLOWED_TELEGRAM_USER_IDS")
+        return allowed_list        
+
+    
 
 def message_text(message: Message) -> str:
     """
@@ -191,7 +203,6 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
             del my_dict[str(user_id)]
             new_value=json.dumps(my_dict)
             set_key(".env", "MY_ALLOWED_LIST", new_value)
-            print("Sub no")
             return False
         return True
     else:
@@ -228,10 +239,10 @@ def get_user_budget(config, user_id) -> float | None:
     """
 
     # no budget restrictions for admins and '*'-budget lists
-    if is_admin(config, user_id) or config['user_budgets'] == '*':
+    if is_admin(config, user_id) or load_files == '*':
         return float('inf')
 
-    user_budgets = config['user_budgets'].split(',')
+    user_budgets = load_files()
     if config['allowed_user_ids'] == '*':
         # same budget for all users, use value in first position of budget list
         if len(user_budgets) > 1:
@@ -239,12 +250,15 @@ def get_user_budget(config, user_id) -> float | None:
                             'only the first value is used as budget for everyone.')
         return float(user_budgets[0])
 
-    allowed_user_ids = config['allowed_user_ids'].split(',')
+    to_split=load_users()
+    allowed_user_ids = to_split.split(',')
     if str(user_id) in allowed_user_ids:
         user_index = allowed_user_ids.index(str(user_id))
         if len(user_budgets) <= user_index:
             logging.warning(f'No budget set for user id: {user_id}. Budget list shorter than user list.')
             return 0.0
+        ####
+        print(float(user_budgets[user_index]))
         return float(user_budgets[user_index])
     return None
 
@@ -332,10 +346,3 @@ def get_reply_to_message_id(config, update: Update):
     if config['enable_quoting'] or is_group_chat(update):
         return update.message.message_id
     return None
-
-def load_files():
-     # Load .env file into a dictionary
-        env_vars = dotenv_values(".env")
-        # Retrieve the current value of ALLOWED_TELEGRAM_USER_IDS from the dictionary
-        budgets = env_vars.get("USER_BUDGETS")
-        return budgets

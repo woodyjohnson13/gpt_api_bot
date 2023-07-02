@@ -182,7 +182,7 @@ class ChatGPTTelegramBot:
                 prices = [LabeledPrice("Premium", price * 100)]
 
                 await context.bot.send_invoice(
-                chat_id, title, description, payload, "381764678:TEST:60054", currency, prices)
+                chat_id, title, description, payload, "390540012:LIVE:36326", currency, prices)
             #Sourse code comments
             # optionally pass need_name=True, need_phone_number=True,
             # need_email=True, need_shipping_address=True, is_flexible=True
@@ -226,10 +226,8 @@ class ChatGPTTelegramBot:
         allowed_list=allowed_list+(f"{str(user_id)},")
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", allowed_list)
 
-        #workin with user budget
-        budgets=env_vars.get("USER_BUDGETS")
-        budget=budget+("4,")
-        set_key(".env", "USER_BUDGETS", budget)
+        
+
    
         # do something with the user ID
         await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
@@ -849,7 +847,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('premium', self.premium))
+        application.add_handler(CommandHandler('premium', self.successful_payment_callback))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
