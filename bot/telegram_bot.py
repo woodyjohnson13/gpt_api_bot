@@ -226,7 +226,11 @@ class ChatGPTTelegramBot:
         allowed_list=allowed_list+(f"{str(user_id)},")
         set_key(".env", "ALLOWED_TELEGRAM_USER_IDS", allowed_list)
 
-        
+        #working with budgets
+        budgets=env_vars.get("USER_BUDGETS")
+        budgets=budgets+str(4)
+        set_key(".env", "USER_BUDGETS", budgets)
+
 
    
         # do something with the user ID
@@ -847,7 +851,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('premium', self.successful_payment_callback))
+        application.add_handler(CommandHandler('premium', self.premium))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )
