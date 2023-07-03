@@ -1,7 +1,8 @@
 from __future__ import annotations
 
-import asyncio
+
 #import itertools
+import asyncio
 import logging
 import telegram
 from telegram import Message, MessageEntity, Update, ChatMember, constants
@@ -326,6 +327,8 @@ def add_chat_request_to_usage_tracker(usage, config, user_id, used_tokens):
     :param user_id: The user id
     :param used_tokens: The number of tokens used
     """
+    
+    
     try:
         # add chat request to users usage tracker
         usage[user_id].add_chat_tokens(used_tokens, config['token_price'])
