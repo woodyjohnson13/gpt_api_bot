@@ -168,8 +168,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     #     return True
 
     # user_id = update.inline_query.from_user.id if is_inline else update.message.from_user.id
-    # if is_admin(config, user_id):
-    #     return True
+    
     # name = update.inline_query.from_user.name if is_inline else update.message.from_user.name
     # allowed_user_ids = config['allowed_user_ids'].split(',')
     # # Check if user is allowed
@@ -194,6 +193,9 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     is_allowed = env_vars.get("MY_ALLOWED_LIST")
 
     my_dict=json.loads(is_allowed)
+    
+    if is_admin(config, user_id):
+        return True
     
     if str(user_id) in my_dict:
         timestamp=datetime.fromisoformat(my_dict[str(user_id)])

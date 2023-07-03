@@ -6,7 +6,7 @@ import os
 from dotenv import load_dotenv,dotenv_values,set_key
 
 #for subscription control
-from datetime import datetime,timedelta
+from datetime import datetime
 import json
 
 
@@ -176,7 +176,7 @@ class ChatGPTTelegramBot:
                 payload = "Custom-Payload"
                 # In order to get a provider_token see https://core.telegram.org/bots/payments#getting-a-token
                 currency = "RUB"
-                # price in dollars
+                # price in roubles
                 price = 500
                 # price * 100 so as to include 2 decimal points
                 prices = [LabeledPrice("Premium", price * 100)]
@@ -201,9 +201,7 @@ class ChatGPTTelegramBot:
     # finally, after contacting the payment provider...
     async def successful_payment_callback(self,update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         """Confirms the successful payment."""
-        # do something after successfully receiving payment?
-        await update.message.reply_text("Thank you for your payment!")
-                
+        # do something after successfully receiving payment?                
         #retireve the current timestamp and user id
         timestamp=datetime.now().isoformat()
         user_id = update.message.from_user.id
@@ -234,7 +232,7 @@ class ChatGPTTelegramBot:
 
    
         # do something with the user ID
-        await update.message.reply_text(f"Thank you for your payment! User:{user_id}")
+        await update.message.reply_text(f"Оплата прошла успешно,ваша premium подписка активна!")
         
     
     async def resend(self, update: Update, context: ContextTypes.DEFAULT_TYPE):
