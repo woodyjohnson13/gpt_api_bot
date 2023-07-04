@@ -314,6 +314,7 @@ class ChatGPTTelegramBot:
                 user_id = update.message.from_user.id
                 self.usage[user_id].add_image_request(image_size, self.config['image_prices'])
                 # add guest chat request to guest usage tracker
+                
                 if str(user_id) not in self.config['allowed_user_ids'].split(',') and 'guests' in self.usage:
                     self.usage["guests"].add_image_request(image_size, self.config['image_prices'])
 
@@ -849,7 +850,7 @@ class ChatGPTTelegramBot:
         application.add_handler(CommandHandler('start', self.help))
         application.add_handler(CommandHandler('stats', self.stats))
         application.add_handler(CommandHandler('resend', self.resend))
-        application.add_handler(CommandHandler('premium', self.premium))
+        application.add_handler(CommandHandler('premium', self.successful_payment_callback))
         application.add_handler(CommandHandler(
             'chat', self.prompt, filters=filters.ChatType.GROUP | filters.ChatType.SUPERGROUP)
         )

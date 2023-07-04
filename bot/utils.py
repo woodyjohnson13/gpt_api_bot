@@ -197,6 +197,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
     if is_admin(config, user_id):
         return True
     
+    
     if str(user_id) in my_dict:
         timestamp=datetime.fromisoformat(my_dict[str(user_id)])
         difference = datetime.now() - timestamp
@@ -208,7 +209,7 @@ async def is_allowed(config, update: Update, context: CallbackContext, is_inline
             return False
         return True
     else:
-        return False
+        return True
 
 
     
@@ -293,11 +294,16 @@ def get_remaining_budget(config, usage, update: Update, is_inline=False) -> floa
         cost = usage[user_id].get_current_cost()[budget_cost_map[budget_period]]
         return user_budget - cost
 
-    # Get budget for guests
-    if 'guests' not in usage:
-        usage['guests'] = UsageTracker('guests', 'all guest users in group chats')
-    cost = usage['guests'].get_current_cost()[budget_cost_map[budget_period]]
-    return config['guest_budget'] - cost
+
+
+    to_split=load_users()
+    allowed_user_ids = to_split.split(',')
+    if str(user_id) not in allowed_user_ids:
+        cost = usage[user_id].get_current_cost()[budget_cost_map[budget_period]]
+        print(cost)
+        return 0.025 - cost
+
+
 
 
 def is_within_budget(config, usage, update: Update, is_inline=False) -> bool:
@@ -330,7 +336,11 @@ def add_chat_request_to_usage_tracker(usage, config, user_id, used_tokens):
         # add chat request to users usage tracker
         usage[user_id].add_chat_tokens(used_tokens, config['token_price'])
         # add guest chat request to guest usage tracker
-        allowed_user_ids = config['allowed_user_ids'].split(',')
+        # allowed_user_ids = config['allowed_user_ids'].split(',')
+        
+        
+        to_split=load_users()
+        allowed_user_ids = to_split.split(',')
         if str(user_id) not in allowed_user_ids and 'guests' in usage:
             usage["guests"].add_chat_tokens(used_tokens, config['token_price'])
     except Exception as e:
